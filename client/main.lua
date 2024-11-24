@@ -1,19 +1,19 @@
-ESX = exports['es_extended']:getSharedObject()
+local Framework = nil
+
+if GetResourceState('qb-core') == 'started' then
+    Framework = exports['qb-core']:GetCoreObject()
+elseif GetResourceState('es_extended') == 'started' then
+    Framework = exports['es_extended']:getSharedObject()
+end
 
 local function startLockpicking(vehicle)
-
     RequestAnimDict("anim@amb@clubhouse@tutorial@bkr_tut_ig3@")
-
     while not HasAnimDictLoaded("anim@amb@clubhouse@tutorial@bkr_tut_ig3@") do
         Wait(500)
     end
 
-
     TaskPlayAnim(PlayerPedId(), "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 8.0, -8.0, -1, 1, 0, false, false, false)
-    
     local success = lib.skillCheck({'easy', 'medium', 'hard'})
-    
- 
     ClearPedTasksImmediately(PlayerPedId())
 
     if success then
@@ -26,7 +26,6 @@ local function startLockpicking(vehicle)
         })
     else
         TriggerServerEvent('x-lockpick:removeLockpick')
-
         lib.notify({
             title = Config.LockpickingFailed,
             description = Config.LockpickingFailedDesc,
@@ -49,7 +48,6 @@ local function openLockpickVehicleMenu(vehicle)
             }
         }
     })
-
     lib.showContext('lockpick_vehicle_menu')
 end
 
@@ -68,19 +66,16 @@ local function openLockpickMenu()
             }
         }
     })
-
     lib.showContext('lockpick_menu')
 end
 
 local function createDealerPed()
     RequestModel(GetHashKey(Config.DealerPed.model))
-
     while not HasModelLoaded(GetHashKey(Config.DealerPed.model)) do
         Wait(500)
     end
 
     local dealerPed = CreatePed(4, GetHashKey(Config.DealerPed.model), Config.DealerPed.coords.x, Config.DealerPed.coords.y, Config.DealerPed.coords.z - 1.0, Config.DealerPed.heading, false, true)
-    
     SetEntityAsMissionEntity(dealerPed, true, true)
     SetBlockingOfNonTemporaryEvents(dealerPed, true)
     SetPedDiesWhenInjured(dealerPed, false)
@@ -114,10 +109,9 @@ exports.ox_target:addGlobalVehicle({
         onSelect = function(data)
             local playerPed = PlayerPedId()
             if not IsPedInAnyVehicle(playerPed, false) then
-                ESX.TriggerServerCallback('x-lockpick:hasLockpick', function(hasLockpick)
+                TriggerServerEvent('x-lockpick:checkLockpick', function(hasLockpick)
                     if hasLockpick then
-                        local vehicle = data.entity
-                        openLockpickVehicleMenu(vehicle)
+                        openLockpickVehicleMenu(data.entity)
                     else
                         lib.notify({
                             title = Config.Nolockpicktitle,
