@@ -1,5 +1,5 @@
 # xlockpicksystem
-X Locpick System ESX Framework &amp; OX LIB
+X Locpick System ESX & QB Framework &amp; OX LIB
 
 Preview: https://youtu.be/SOJAwawlzuc
 
