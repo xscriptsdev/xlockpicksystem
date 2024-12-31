@@ -1,30 +1,48 @@
-ESX = exports['es_extended']:getSharedObject()
-
 local function startLockpicking(vehicle)
-
     RequestAnimDict("anim@amb@clubhouse@tutorial@bkr_tut_ig3@")
 
     while not HasAnimDictLoaded("anim@amb@clubhouse@tutorial@bkr_tut_ig3@") do
         Wait(500)
     end
 
-
     TaskPlayAnim(PlayerPedId(), "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 8.0, -8.0, -1, 1, 0, false, false, false)
-    
+
     local success = lib.skillCheck({'easy', 'medium', 'hard'})
-    
- 
+
     ClearPedTasksImmediately(PlayerPedId())
 
     if success then
-        SetVehicleDoorsLocked(vehicle, 1)
-        SetVehicleDoorsLockedForAllPlayers(vehicle, false)
-        lib.notify({
-            title = Config.SuccessfulyTitle,
-            description = Config.SuccessfullyDesc,
-            type = 'success'
-        })
+ 
+        local networkId = NetworkGetNetworkIdFromEntity(vehicle)
+        if not NetworkHasControlOfEntity(vehicle) then
+            NetworkRequestControlOfEntity(vehicle)
+            local attempts = 0
+            while not NetworkHasControlOfEntity(vehicle) and attempts < 10 do
+                Wait(100)
+                attempts = attempts + 1
+            end
+        end
+
+        if NetworkHasControlOfEntity(vehicle) then
+            SetVehicleDoorsLocked(vehicle, 1) 
+            SetVehicleDoorsLockedForAllPlayers(vehicle, false) 
+            SetNetworkIdCanMigrate(networkId, true) 
+
+ 
+            lib.notify({
+                title = Config.SuccessfulyTitle,
+                description = Config.SuccessfullyDesc,
+                type = 'success'
+            })
+        else
+            lib.notify({
+                title = Config.LockpickingFailed,
+                description = Config.LockpickingFailedDesc,
+                type = 'error'
+            })
+        end
     else
+     
         TriggerServerEvent('x-lockpick:removeLockpick')
 
         lib.notify({
@@ -34,6 +52,7 @@ local function startLockpicking(vehicle)
         })
     end
 end
+
 
 local function openLockpickVehicleMenu(vehicle)
     lib.registerContext({
@@ -106,6 +125,7 @@ if Config.EnableDealer then
     createDealerPed()
 end
 
+
 exports.ox_target:addGlobalVehicle({
     {
         name = 'lockpick_vehicle',
@@ -114,18 +134,35 @@ exports.ox_target:addGlobalVehicle({
         onSelect = function(data)
             local playerPed = PlayerPedId()
             if not IsPedInAnyVehicle(playerPed, false) then
-                ESX.TriggerServerCallback('x-lockpick:hasLockpick', function(hasLockpick)
-                    if hasLockpick then
-                        local vehicle = data.entity
-                        openLockpickVehicleMenu(vehicle)
-                    else
-                        lib.notify({
-                            title = Config.Nolockpicktitle,
-                            description = Config.Nolockpickdesc,
-                            type = 'error'
-                        })
-                    end
-                end)
+                if Config.Framework == 'ESX' then
+                    ESX = exports["es_extended"]:getSharedObject()
+                    ESX.TriggerServerCallback('x-lockpick:hasLockpick', function(hasLockpick)
+                        if hasLockpick then
+                            local vehicle = data.entity
+                            openLockpickVehicleMenu(vehicle)
+                        else
+                            lib.notify({
+                                title = Config.Nolockpicktitle,
+                                description = Config.Nolockpickdesc,
+                                type = 'error'
+                            })
+                        end
+                    end)
+                elseif Config.Framework == 'QB' then
+                    QBCore = exports['qb-core']:GetCoreObject()
+                    QBCore.Functions.TriggerCallback('x-lockpick:hasLockpick', function(hasLockpick)
+                        if hasLockpick then
+                            local vehicle = data.entity
+                            openLockpickVehicleMenu(vehicle)
+                        else
+                            lib.notify({
+                                title = Config.Nolockpicktitle,
+                                description = Config.Nolockpickdesc,
+                                type = 'error'
+                            })
+                        end
+                    end)
+                end
             else
                 lib.notify({
                     title = Config.Cant,

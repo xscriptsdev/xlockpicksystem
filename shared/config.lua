@@ -8,6 +8,8 @@
 
 Config = {}
 
+Config.Framework = 'ESX' -- 'ESX' or 'QB'
+
 Config.EnableDealer = true -- if u want to enable the dealer leave true, if u want to disable it set it to false
 Config.LockpickPrice = 500  -- Price of the lockpick
 
@@ -51,5 +53,3 @@ Config.PurchaseTitle = "Purchase"
 Config.BoughtLockpick = "You bought a lockpick"
 Config.NotEnoughMoney = "You don't have enough money!"
 Config.NotEnoughMoneyDesc = "You do not have enough money to buy a lockpick"
-
-
